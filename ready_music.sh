@@ -40,7 +40,7 @@ do
 		scripts/./add_to_playlist.sh $playlist $query	
 	fi
 
-	if [ "$ask" == "Remove Song From Playlist" ]; then
+	if [ "$ask" == "Remove Song from Playlist" ]; then
 		# Not done
 		echo "View Playlist"
 	fi
