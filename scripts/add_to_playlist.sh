@@ -40,10 +40,6 @@ echo "Video chosen: '$firsturl'"
 # sudo chmod a+rx /usr/local/bin/youtube-dl
 # may have to do: sudo ln -s /usr/bin/python3 /usr/bin/python
 
-# for later:
-# find /PATH/TO/MUSIC/DIRECTORY/ -type f -iname "*.mp3" > playlist.m3u to save as playlist
-# mplayer -playlist playlist.m3u
-
 songName=$(youtube-dl --get-filename -o "%(title)s" $firsturl)
 mp3Name="$songName.mp3"
 if [ ! -f "$mp3Name" ]; then
@@ -56,6 +52,7 @@ fi
 # Add name to playlist
 echo "../$mp3Name" >> playlists/$playlistName
 echo "Added '$songName' to playlist '$playlist'"
+zenity --info --width=150 --height=120 --text "Added '$songName' to playlist '$playlist'!"
 rm htmltemp
 
 

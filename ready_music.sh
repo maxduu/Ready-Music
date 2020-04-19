@@ -14,7 +14,7 @@ do
 	fi
 
 	if [ "$ask" == "Play Playlist" ]; then
-		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -printf "%f\n")
+		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -exec basename {} \;)
 		allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g')
 
 		playlist=`zenity --entry --title "Play Playlist" --text "Playlists: $allPlaylists"`
@@ -29,7 +29,7 @@ do
 	fi
 
 	if [ "$ask" == "Add Song to Playlist" ]; then
-		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -printf "%f\n")
+		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -exec basename {} \;)
 		allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g')
 		playlist=`zenity --entry --title "Which Playlist?" --text "Playlists: $allPlaylists \n (Or create a new playlist)"`
 		[[ "$?" != "0" ]] && continue
@@ -42,7 +42,7 @@ do
 
 	if [ "$ask" == "Remove Song from Playlist" ]; then
 		# Not done
-		echo "View Playlist"
+		echo "Remove Song from Playlist"
 	fi
 sleep 1
 done

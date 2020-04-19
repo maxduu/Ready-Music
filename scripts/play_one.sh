@@ -31,12 +31,18 @@ echo "Video chosen: $firsturl"
 # may have to do: sudo ln -s /usr/bin/python3 /usr/bin/python
 
 songName=$(youtube-dl --get-filename -o "%(title)s" $firsturl)
+mp3Name="$songName.mp3"
+if [ ! -f ~/Desktop/songs/"$mp3Name" ]; then
+	echo "Downloading mp3 of '$songName'..."
+	youtube-dl -x -o "%(title)s.%(ext)s" --audio-format mp3 $firsturl
+	mplayer "$mp3Name"
+	rm "$mp3Name"
+else
+	echo "Song already downloaded locally"
+	mplayer ~/Desktop/songs/"$mp3Name"
+fi
 
-echo "Downloading audio of '$songName'..."
-youtube-dl -x -o "%(title)s.%(ext)s" $firsturl
-toPlay=$(find -name "$songName*" -maxdepth 1)
-mplayer "$toPlay"
 
 # Delete files after
-rm "$toPlay"
+
 rm htmltemp
