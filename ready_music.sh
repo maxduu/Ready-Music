@@ -1,8 +1,9 @@
 #!/bin/bash
 
+# if downloading broken, type youtube-dl --rm-cache-dir
 while :
 do
-	ask=`zenity --list --title="Welcome to Ready-Music!" --column="0" "Play One Song" "Play Playlist" "Add Song to Playlist" "Remove Song from Playlist" "Delete Song" --width=100 --height=200 --hide-header`
+	ask=`zenity --list --title="Welcome to Ready-Music!" --column="0" "Play One Song" "Play Playlist" "Add Song to Playlist" "Remove Song from Playlist" "Delete Song" --width=100 --height=300 --hide-header`
 	[[ "$?" != "0" ]] && exit 1
 
 	if [ "$ask" == "Play One Song" ]; then
@@ -14,7 +15,7 @@ do
 	fi
 
 	if [ "$ask" == "Play Playlist" ]; then
-		allPlaylists=$(find $~/Desktop/songs/playlists -type f -name "*.m3u" -exec basename {} \;)
+		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -exec basename {} \;)
 		allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g')
 
 		playlist=`zenity --entry --title "Play Playlist" --text "Playlists: $allPlaylists"`
@@ -43,10 +44,9 @@ do
 	if [ "$ask" == "Remove Song from Playlist" ]; then
 		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*m3u" -exec basename {} \;)
     allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g') 
-    playlist=`zenity --entry --title "Which Playlis?" --text "Playlists: $allPlaylists \n"`
-    path=$(echo $HOME/Desktop/songs/playlists/$playlist.m3u) 
-
+    playlist=`zenity --entry --title "Which Playlist?" --text "Playlists: $allPlaylists \n"`
     [[ "$?" != "0" ]] && continue
+    path=$(echo $HOME/Desktop/songs/playlists/$playlist.m3u) 
   
     #query=`zenity --entry --title "What Song?" --text "Enter song keywords:"`
     #[[ "$?" != "0" ]] && continue
@@ -57,8 +57,11 @@ do
     temp=$(cat temp.txt)
     rm temp.txt
     
-    to_remove=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header`
-
+    to_remove=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header --width=400 --height=600`
+    [[ "$?" != "0" ]] && continue
+    if [ -z "$to_remove" ]; then
+        continue
+    fi
     # delete the song from songlist and echo done
     line=$(scripts/./get_line.py $path $to_remove)
     sed "${line}d" $path > $HOME/Desktop/songs/playlists/temp.m3u
@@ -75,8 +78,12 @@ do
     temp="\"0\" $(cat temp2.txt)"
     rm temp*
 
-    to_delete=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header` 
+    to_delete=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header --width=400 --height=600` 
+    [[ "$?" != "0" ]] && continue
     #delete song from dataset
+    if [ -z "$to_delete" ]; then
+        continue
+    fi
     path=$(echo $HOME/Desktop/songs/$to_delete.mp3)
     rm "$path"
     echo "Song '$to_delete' was deleted" 
