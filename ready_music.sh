@@ -3,7 +3,8 @@
 # if downloading broken, type youtube-dl --rm-cache-dir
 while :
 do
-	ask=`zenity --list --title="Welcome to Ready-Music!" --column="0" "Play One Song" "Play Playlist" "Add Song to Playlist" "Remove Song from Playlist" "Delete Song" --width=100 --height=300 --hide-header`
+	rm -f temp.txt
+	ask=`zenity --list --title="Welcome to Ready-Music!" --column="0" "Play One Song" "Play Playlist" "Add Song to Playlist" "Remove Song from Playlist" "Delete Song" "*Get Recommendations for Playlist*" --width=280 --height=230 --hide-header`
 	[[ "$?" != "0" ]] && exit 1
 
 	if [ "$ask" == "Play One Song" ]; then
@@ -18,7 +19,7 @@ do
 		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -exec basename {} \;)
 		allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g')
 
-		playlist=`zenity --entry --title "Play Playlist" --text "Playlists: $allPlaylists"`
+		playlist=`zenity --entry --title "Play Playlist" --text "Playlists: $allPlaylists \n"`
 		[[ "$?" != "0" ]] && continue
 		if zenity --question --width 100 --text "Shuffle?"; then
 			# CALL SCRIPT
@@ -41,6 +42,66 @@ do
 		scripts/./add_to_playlist.sh $playlist $query	
 	fi
 
+	if [ "$ask" == "*Get Recommendations for Playlist*" ]; then
+		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*.m3u" -exec basename {} \;)
+		allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g')
+		playlist=`zenity --entry --width=200 --title "Choose a Playlist" --text "Playlists: $allPlaylists \n"`
+		[[ "$?" != "0" ]] && continue
+		path=$(echo $HOME/Desktop/songs/playlists/$playlist.m3u) 
+
+		#create a temp.txt to store the song list
+		touch temp.txt
+		scripts/./get_songs.py $path temp.txt
+
+		#create pattern to match artists (usually before a dash)
+		pattern="([a-zA-Z0-9[:space:]]+)\-"
+		artists=($(grep -E -o "$pattern" "temp.txt"))
+		#if playlist has no songs with words before a dash
+		if [ ${#artists[@]} -eq 0 ]; then
+			zenity --info --width=150 --height=120 --text "Unable to find recommendations for this playlist (no artists found)."
+			continue
+		fi
+		zenity --info --width=150 --height=120 --text "Hit OK to find songs similar to $playlist! This may take up to 5 minutes."
+		[[ "$?" != "0" ]] && continue
+		#create array from artists
+		mapfile -t arr < <(grep -E -o "$pattern" "temp.txt")
+		eval arr=($(printf "%q\n" "${arr[@]}" | sort -u))
+		echo "${arr[@]}"
+		touch ~/Desktop/songs/recommendations.txt
+		> ~/Desktop/songs/recommendations.txt
+		count=0
+
+		#call script to find recommended songs for each artist
+		for artist in "${arr[@]}"; do
+			echo "artist: $artist"
+			# CALL SCRIPT
+			scripts/./recommend.sh $artist
+			((count++))
+			# Only do most recent 7 artists
+			if [ $count == 7 ]; then
+				break
+			fi
+		done
+
+		recommended=$(cat ~/Desktop/songs/recommendations.txt)
+
+		#allow user to add songs that are recommended
+		while :
+		do
+			toAdd=`eval zenity --list --title="Recommended-Songs" --column=$recommended --hide-header --width=460 --height=600`
+			[[ "$?" != "0" ]] && break
+			if [ -z "$toAdd" ]; then
+        			continue
+    			fi
+			zenity --info --width=150 --height=120 --text "Add '$toAdd' to playlist '$playlist'?"
+			[[ "$?" != "0" ]] && continue
+			# CALL SCRIPT
+			scripts/./add_to_playlist.sh $playlist $toAdd
+			
+		done
+		rm temp.txt
+	fi
+
 	if [ "$ask" == "Remove Song from Playlist" ]; then
 		allPlaylists=$(find ~/Desktop/songs/playlists -type f -name "*m3u" -exec basename {} \;)
     allPlaylists=$(echo $allPlaylists | sed 's/\.m3u/ /g') 
@@ -57,7 +118,7 @@ do
     temp=$(cat temp.txt)
     rm temp.txt
     
-    to_remove=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header --width=400 --height=600`
+    to_remove=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header --width=460 --height=600`
     [[ "$?" != "0" ]] && continue
     if [ -z "$to_remove" ]; then
         continue
@@ -77,8 +138,7 @@ do
     cat temp1.txt | sed 's/^/"/' > temp2.txt
     temp="\"0\" $(cat temp2.txt)"
     rm temp*
-
-    to_delete=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header --width=400 --height=600` 
+    to_delete=`eval zenity --list --title="Which-Song?" --column=$temp --hide-header --width=460 --height=600` 
     [[ "$?" != "0" ]] && continue
     #delete song from dataset
     if [ -z "$to_delete" ]; then
@@ -108,10 +168,4 @@ do
   fi
 sleep 1
 done
-
-
-
-
-
-
 
