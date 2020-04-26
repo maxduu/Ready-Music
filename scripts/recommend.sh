@@ -9,6 +9,7 @@ touch recommendations.txt
 # Create url from search query
 query="$1"
 numArgs=$#
+echo $numArgs
 args=("$@")
 for (( i=1; i<numArgs; i++ ))
 do
@@ -23,8 +24,11 @@ wget -O "htmltemp" $url
 
 # Scrape html for 6 urls (generally corresponds to 3 video results)
 watchPattern="/watch\\?v=[a-zA-Z0-9_-]+"
-mapfile -t arr < <(grep -E -m 6 -o "$watchPattern" "htmltemp")
-
+#mapfile -t arr < <(grep -E -m 6 -o "$watchPattern" "htmltemp")
+old=$IFS
+IFS=$'\n'
+arr=($(grep -E -m 6 -o "$watchPattern" "htmltemp"))
+IFS=$old
 arrLength=${#arr[@]}
 for (( i=0; i<arrLength; i+=2 ))
 do

@@ -55,6 +55,8 @@ do
 
 		#create pattern to match artists (usually before a dash)
 		pattern="([a-zA-Z0-9[:space:]]+)\-"
+		old=$IFS
+		IFS=$'\n'
 		artists=($(grep -E -o "$pattern" "temp.txt"))
 		#if playlist has no songs with words before a dash
 		if [ ${#artists[@]} -eq 0 ]; then
@@ -64,15 +66,16 @@ do
 		zenity --info --width=150 --height=120 --text "Hit OK to find songs similar to $playlist! This may take up to 5 minutes."
 		[[ "$?" != "0" ]] && continue
 		#create array from artists
-		mapfile -t arr < <(grep -E -o "$pattern" "temp.txt")
-		eval arr=($(printf "%q\n" "${arr[@]}" | sort -u))
-		echo "${arr[@]}"
+		#mapfile -t arr < <(grep -E -o "$pattern" "temp.txt")
+		eval artists=($(printf "%q\n" "${artists[@]}" | sort -u))
+		echo "${artists[@]}"
 		touch ~/Desktop/songs/recommendations.txt
 		> ~/Desktop/songs/recommendations.txt
+		IFS=$old
 		count=0
 
 		#call script to find recommended songs for each artist
-		for artist in "${arr[@]}"; do
+		for artist in "${artists[@]}"; do
 			echo "artist: $artist"
 			# CALL SCRIPT
 			scripts/./recommend.sh $artist
