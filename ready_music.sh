@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# if downloading broken, type 'youtube-dl --rm-cache-dir' to update  
+youtube-dl --rm-cache-dir 
+
 while :
 do
   rm -f temp.txt
