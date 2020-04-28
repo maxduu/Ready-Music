@@ -3,6 +3,7 @@
 
 # Create url from search query
 
+# create query string from the input 
 query="$1"
 numArgs=$#
 args=("$@")
@@ -23,26 +24,28 @@ first=$(grep -E -m 1 -o "$watchPattern" "htmltemp")
 firsturl="https://youtube.com$first"
 echo "Video chosen: $firsturl"
 
-
 # TO RUN:
 # sudo apt install curl
 # sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
 # sudo chmod a+rx /usr/local/bin/youtube-dl
 # may have to do: sudo ln -s /usr/bin/python3 /usr/bin/python
 
+# get the song name of the chosen video
 songName=$(youtube-dl --get-filename -o "%(title)s" $firsturl)
 mp3Name="$songName.mp3"
+
+# if not downloaded before, download and echo msg, then use mplayer to play the song
 if [ ! -f ~/Desktop/songs/"$mp3Name" ]; then
 	echo "Downloading mp3 of '$songName'..."
 	youtube-dl -x -o "%(title)s.%(ext)s" --audio-format mp3 $firsturl
 	mplayer "$mp3Name"
 	rm "$mp3Name"
+
+# else if already in the song library, echo the msg and play the song  
 else
 	echo "Song already downloaded locally"
 	mplayer ~/Desktop/songs/"$mp3Name"
 fi
 
-
-# Delete files after
-
+# Delete files after everything
 rm htmltemp

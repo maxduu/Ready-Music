@@ -40,19 +40,28 @@ echo "Video chosen: '$firsturl'"
 # sudo chmod a+rx /usr/local/bin/youtube-dl
 # may have to do: sudo ln -s /usr/bin/python3 /usr/bin/python
 
+# get songname of the first video
 songName=$(youtube-dl --get-filename -o "%(title)s" $firsturl)
 mp3Name="$songName.mp3"
+
+# if not existed, then download and echo msg
 if [ ! -f "$mp3Name" ]; then
 	echo "Downloading mp3 of '$songName'..."
 	youtube-dl -x -o "%(title)s.%(ext)s" --audio-format mp3 $firsturl
+
+# else, echo already downloaded msg
 else
 	echo "Song already downloaded locally"
 fi
 
-# Add name to playlist
+# Add song to playlist and echo success msg
 echo "../$mp3Name" >> playlists/$playlistName
 echo "Added '$songName' to playlist '$playlist'"
+
+# use zenity to show a success msg to user 
 zenity --info --width=150 --height=120 --text "Added '$songName' to playlist '$playlist'!"
+
+# remove temporary file after everything
 rm htmltemp
 
 
